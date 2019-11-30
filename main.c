@@ -3,9 +3,11 @@
 #include <GL/glut.h>
 
 static float x_curr, y_curr, z_curr;
-static float v_x, v_y, v_z;
+static float v;
 static float time;
-
+static float floor_y = -50;
+static float floor_s = 0;
+ 
 static int animation_ongoing; 
 
 static void on_keyboard(unsigned char key, int x, int y);
@@ -22,13 +24,15 @@ int main(int argc, char **argv){
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
 
-    glutInitWindowSize(800, 600);
+    glutInitWindowSize(800, 800);
     glutInitWindowPosition(100, 100);
     glutCreateWindow(argv[0]);
 
     x_curr = 0;
     y_curr = 0;
     z_curr = 0;
+    
+    v = 0;
     
     glutKeyboardFunc(on_keyboard);
     glutReshapeFunc(on_reshape);
@@ -57,7 +61,7 @@ static void on_keyboard(unsigned char key, int x, int y){
     case 'g':
     case 'G':
         if (!animation_ongoing) {
-            glutTimerFunc(30, on_timer, 0);
+            glutTimerFunc(50, on_timer, 0);
             animation_ongoing = 1;
         }
         break;
@@ -75,11 +79,18 @@ static void on_timer(int value){
         return;
 
     time++;
+    y_curr = floor_s + (v*time - time*time*5)/200;
+    
+    if(y_curr <= floor_y + 5){
+        time = 0;
+        v = 300;
+        floor_s = floor_y + 5;
+    }
 
     glutPostRedisplay();
 
     if (animation_ongoing)
-        glutTimerFunc(30, on_timer, 0);
+        glutTimerFunc(50, on_timer, 0);
 }
 
 static void on_reshape(int width, int height){
@@ -116,20 +127,34 @@ static void set_material(int id){
 static void on_display(void){
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glFrustum(-1, 1, -1, 1, 1, 100);
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
-    gluLookAt(0 + x_curr, 10*sin(1.2) + y_curr, 10*cos(1.2) + z_curr,
+    gluLookAt(0 + x_curr, 10*sin(M_PI/2) + y_curr, 10*cos(M_PI/2) + z_curr,
               x_curr, y_curr, z_curr, 
               0, 1, 0);
     
     GLfloat light_position[] = {0, 1, 0, 0};
     glLightfv(GL_LIGHT0, GL_POSITION, light_position);
     
+    glTranslatef(x_curr, y_curr, z_curr);
+    
     glPushMatrix();
         set_material(1);
         glutSolidSphere(1, 20, 20);
+    glPopMatrix();
+    
+    glTranslatef(-x_curr, -y_curr, -z_curr);
+    glTranslatef(0, floor_y, 0);
+    
+    glPushMatrix();
+        set_material(2);
+        glutSolidCube(5);
     glPopMatrix();
     
     glutSwapBuffers();
