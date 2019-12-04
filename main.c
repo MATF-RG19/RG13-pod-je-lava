@@ -1,14 +1,27 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <math.h>
+#include <time.h>
 #include <GL/glut.h>
 
+#define NUM 10
+
+struct platform {
+    
+    float x;
+    float z;
+    int size;
+};
+
+static struct platform arr1[NUM];               //niz platformi
+static struct platform arr2[NUM];               //niz platformi
 static float x_curr, y_curr, z_curr;            //koordinate loptice
 static float v;                                 //brzina navise
-static int time;                                //vreme proteklo od dodira platforme
-static int movement[4] = {0, 0, 0, 0};
+static float time1;                             //vreme proteklo od dodira platforme
+static int movement[4] = {0, 0, 0, 0};          //da li je pritisnuto neko dugme
  
 static int animation_ongoing;                   //da li je animacija u toku
-static int animation_parameter = 0; 
+static float animation_parameter = 0;           //ukupno proteklo vreme
 
 static void on_keyboard(unsigned char key, int x, int y);
 static void on_keyboardUp(unsigned char key, int x, int y);
@@ -17,24 +30,13 @@ static void on_timer(int value);
 static void on_display(void);
 
 int main(int argc, char **argv){
-    
-    GLfloat light_ambient[] =  {0.5, 0.5, 0.5, 1};
-    GLfloat light_diffuse[] =  {0.5, 0.5, 0.5, 1};
-    GLfloat light_specular[] = {0.5, 0.5, 0.5, 1};
 
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
 
-    glutInitWindowSize(800, 800);
+    glutInitWindowSize(800, 600);
     glutInitWindowPosition(100, 100);
     glutCreateWindow(argv[0]);
-
-    x_curr = 0;
-    y_curr = 50;
-    z_curr = 0;
-    
-    v = 300;
-    time = 40;
     
     glutKeyboardFunc(on_keyboard);
     glutKeyboardUpFunc(on_keyboardUp);
@@ -45,11 +47,30 @@ int main(int argc, char **argv){
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
+    
+    GLfloat light_ambient[] =  {0.5, 0.5, 0.5, 1};
+    GLfloat light_diffuse[] =  {0.5, 0.5, 0.5, 1};
+    GLfloat light_specular[] = {0.5, 0.5, 0.5, 1};
 
     glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
     glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
     glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
 
+    x_curr = 0;
+    y_curr = 50;
+    z_curr = 0;
+    
+    v = 300;
+    time1 = 40;
+    
+    srand(time(NULL));
+    
+    for(int i = 0; i<NUM; i++){
+        
+        arr1[i].x = 40*(rand()/(float)RAND_MAX) - 20;
+        arr1[i].z = -i*10 - 10;
+        arr1[i].size = round(4*rand()/(float)RAND_MAX + 3);
+    }
     glutMainLoop();
 
     return 0;
@@ -108,23 +129,46 @@ static void on_timer(int value){
     if (value != 0)
         return;
 
-    time++;
-    y_curr = (v*time - time*time*5)/400;
+    animation_parameter++;
+    time1++;
+    y_curr = (v*time1 - time1*time1*5)/400;
     
     if(movement[0])
-        z_curr -= 0.1;
+        z_curr -= 0.2;
     if(movement[1])
-        x_curr -= 0.1;
+        x_curr -= 0.2;
     if(movement[2])
-        z_curr += 0.1;
+        z_curr += 0.2;
     if(movement[3])
-        x_curr += 0.1;
+        x_curr += 0.2;
     
     if(y_curr <=  0){
-        time = 0;
+        time1 = 0;
         v = 500;
     }
 
+    if((int)-z_curr%100 == 50){
+        
+        if((int)-z_curr/100 % 2 == 0){
+         
+            for(int i = 0; i<NUM; i++){
+        
+                arr2[i].x = 40*(rand()/(float)RAND_MAX) - 20;
+                arr2[i].z = -i*10 - 10 - 100 * ((int)-z_curr/100 + 1);
+                arr2[i].size = round(4*rand()/(float)RAND_MAX + 3);
+            }
+        }
+        else{
+            
+            for(int i = 0; i<NUM; i++){
+        
+                arr1[i].x = 40*(rand()/(float)RAND_MAX) - 20;
+                arr1[i].z = -i*10 - 10 - 100 * ((int)-z_curr/100 + 1);
+                arr1[i].size = round(4*rand()/(float)RAND_MAX + 3);
+            }
+        }
+    }
+    
     glutPostRedisplay();
 
     if (animation_ongoing)
@@ -142,9 +186,9 @@ static void on_reshape(int width, int height){
 
 static void set_material(int id){
     
-    GLfloat ambient_coeffs[] = { 0.1, 0.1, 0.1, 1 };
-    GLfloat diffuse_coeffs[] = { 0.1, 0.1, 0.1, 1 };
-    GLfloat specular_coeffs[] = { 1, 1, 1, 1 };
+    GLfloat ambient_coeffs[] =  {0.1, 0.1, 0.1, 1};
+    GLfloat diffuse_coeffs[] =  {0.1, 0.1, 0.1, 1};
+    GLfloat specular_coeffs[] = {1, 1, 1, 1};
     GLfloat shininess = 50;
     
     switch (id) {
@@ -178,14 +222,25 @@ static void on_display(void){
     
     glPushMatrix();
         glTranslatef(x_curr, y_curr, z_curr);
+        glRotatef(animation_parameter, -1, 0, 0);
         set_material(1);
         glutSolidSphere(1, 20, 20);
     glPopMatrix();
     
-    glPushMatrix();
-        set_material(2);
-        glutSolidCube(5);
-    glPopMatrix();
+    for(int i = 0; i<NUM; i++){
+        
+        glPushMatrix();
+            glTranslatef(arr1[i].x, -arr1[i].size, arr1[i].z);
+            set_material(2);
+            glutSolidCube(arr1[i].size);
+        glPopMatrix();
+        
+        glPushMatrix();
+            glTranslatef(arr2[i].x, -arr2[i].size, arr2[i].z);
+            set_material(2);
+            glutSolidCube(arr2[i].size);
+        glPopMatrix();
+    }
     
     glutSwapBuffers();
 }
