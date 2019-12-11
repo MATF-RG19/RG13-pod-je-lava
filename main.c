@@ -11,17 +11,20 @@ struct platform {
     float x;
     float z;
     float size;
+    float speed;
 };
 
-static struct platform arr1[NUM];               //niz platformi
-static struct platform arr2[NUM];               //niz platformi
+static struct platform arr1[NUM];               //prvi niz platformi
+static struct platform arr2[NUM];               //drugi niz platformi
 static float x_curr, y_curr, z_curr;            //koordinate loptice
 static float v;                                 //brzina navise
 static float time1;                             //vreme proteklo od dodira platforme
+static int time2 = 0;                           //ukupno proteklo vreme
 static int movement[4] = {0, 0, 0, 0};          //da li je pritisnuto neko dugme
 static int animation;                           //da li je animacija u toku
 static int colision = 1;                        //da li se desila kolizija
-static float size = 0.6;                        //poluprecnik loptice
+static int pos = 0;                             //koliko nizova je generisano
+static float size = 0.5;                        //poluprecnik loptice
 
 static void on_keyboard(unsigned char key, int x, int y);
 static void on_keyboardUp(unsigned char key, int x, int y);
@@ -70,7 +73,7 @@ static void lights(){
     glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
 }
 
-//inicijalizacija koordinata i niza platformi
+//inicijalizacija koordinata loptice i niza platformi
 static void init(){
     
     x_curr = 0;
@@ -87,6 +90,10 @@ static void init(){
         arr1[i].x = 40*(rand()/(float)RAND_MAX) - 20;
         arr1[i].z = -i*10;
         arr1[i].size = ceil(4*(rand()/(float)RAND_MAX) + 1);
+        if(i%2 == 0)
+            arr1[i].speed = 0.05;
+        else
+            arr1[i].speed = -0.05;
     }
 }
 
@@ -153,13 +160,26 @@ static void on_timer(int value){
     if (value != 0)
         return;
 
-    time1++;                                 //uvecavamo vreme
-
-    int z10 = (int)-z_curr%100;              //poslednje dve cifre z koordinate
-    int z100 = (int)-z_curr/100;             //z koordinata podeljena sa 100
-    int ind = z10/10;                        //cifra desetica z koordinate sluzi za indeksiranje niza platformi
+    time1++;
+    time2++;
     
-    y_curr = (v*time1 - time1*time1*5)/500;  //y koordinatu racunamo po formuli hica navise
+    //y koordinatu racunamo po formuli hica navise
+    y_curr = (v*time1 - time1*time1*5)/500;  
+    
+    if(time2%100 != 0){
+        for(int i = 0; i<NUM; i++){
+            
+            arr1[i].x += arr1[i].speed;
+            arr2[i].x += arr2[i].speed;
+        }
+    }
+    else{
+        for(int i = 0; i<NUM; i++){
+            
+            arr1[i].speed = -arr1[i].speed;
+            arr2[i].speed = -arr2[i].speed;
+        }
+    }
     
     //ako je pritisnuto neko dugme pomeri lopticu
     if(movement[0])
@@ -170,6 +190,10 @@ static void on_timer(int value){
         z_curr += 0.2;
     if(movement[3])
         x_curr += 0.2;
+    
+    int z10 = (int)-z_curr%100;              //poslednje dve cifre z koordinate
+    int z100 = (int)-z_curr/100;             //z koordinata podeljena sa 100
+    int ind = z10/10;                        //cifra desetica z koordinate sluzi za indeksiranje niza platformi
     
     //ako je loptica u nivou platformi
     if(y_curr <= size && colision){
@@ -204,7 +228,15 @@ static void on_timer(int value){
         if(colision){
             
             time1 = 0;
-            v = 500;
+            v = 750 + 500/3;
+            
+            if(z100 % 2 == 0)
+                v -= arr1[ind].size*250 / 3;
+            else
+                v -= arr2[ind].size*250 / 3;
+            
+            if(z_curr > 0)
+                v = 500;
         }
     }
     
@@ -214,7 +246,7 @@ static void on_timer(int value){
     
     //ako se loptica nalazi na petoj platformi u nekom nizu azuriraj drugi niz
     //ovo sluzi da se pomocu dva niza dobije beskonacno platformi (endless runner)
-    if(z10 == 50){
+    if(z10 > 45 && z100 == pos){
         //azuriramo 2. niz
         if(z100 % 2 == 0){              
          
@@ -223,6 +255,10 @@ static void on_timer(int value){
                 arr2[i].x = 40*(rand()/(float)RAND_MAX) - 20;
                 arr2[i].z = -i*10 - 100 * (z100 + 1);
                 arr2[i].size = ceil(4*(rand()/(float)RAND_MAX) + 1);
+                if(i%2 == 0)
+                    arr2[i].speed = ((float)z100+2)/20;
+                else
+                    arr2[i].speed = -((float)z100+2)/20;
             }
         }
         //azuriramo 1. niz
@@ -233,8 +269,14 @@ static void on_timer(int value){
                 arr1[i].x = 40*(rand()/(float)RAND_MAX) - 20;
                 arr1[i].z = -i*10 - 100 * (z100 + 1);
                 arr1[i].size = ceil(4*(rand()/(float)RAND_MAX) + 1);
+                if(i%2 == 0)
+                    arr1[i].speed = ((float)z100+2)/20;
+                else
+                    arr1[i].speed = -((float)z100+2)/20;
             }
         }
+        
+        pos++;
     }
     
     glutPostRedisplay();
@@ -249,7 +291,7 @@ static void on_reshape(int width, int height){
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(90, (float) width / height, 1, 100);
+    gluPerspective(70, (float) width / height, 1, 200);
 }
 
 //oboji objekte
@@ -296,13 +338,15 @@ static void on_display(void){
         set_material(2);
         glutSolidCube(6);
     glPopMatrix();
+    
     //loptica
     glPushMatrix();
         glTranslatef(x_curr, y_curr, z_curr);
         glRotatef(time1, -1, 0, 0);
         set_material(1);
-        glutSolidSphere(size, 20, 20);
+        glutSolidSphere(size, 50, 50);
     glPopMatrix();
+    
     //ostale platforme
     for(int i = 0; i<NUM; i++){
         
