@@ -21,13 +21,15 @@ static float time1;                             //vreme proteklo od dodira platf
 static int movement[4] = {0, 0, 0, 0};          //da li je pritisnuto neko dugme
 static int animation;                           //da li je animacija u toku
 static int colision = 1;                        //da li se desila kolizija
-static float size = 0.6;                        //precnik loptice
+static float size = 0.6;                        //poluprecnik loptice
 
 static void on_keyboard(unsigned char key, int x, int y);
 static void on_keyboardUp(unsigned char key, int x, int y);
 static void on_reshape(int width, int height);
 static void on_timer(int value);
 static void on_display(void);
+static void init();
+static void lights();
 
 int main(int argc, char **argv){
 
@@ -42,8 +44,19 @@ int main(int argc, char **argv){
     glutKeyboardUpFunc(on_keyboardUp);
     glutReshapeFunc(on_reshape);
     glutDisplayFunc(on_display);
-
+    
     glClearColor(0, 0, 0, 0);
+    lights();
+    init();
+    
+    glutMainLoop();
+    
+    return 0;
+}
+
+//inicijalizacija svetla
+static void lights(){
+    
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
@@ -55,7 +68,11 @@ int main(int argc, char **argv){
     glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
     glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
     glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
+}
 
+//inicijalizacija koordinata i niza platformi
+static void init(){
+    
     x_curr = 0;
     y_curr = 25;
     z_curr = 10;
@@ -71,9 +88,6 @@ int main(int argc, char **argv){
         arr1[i].z = -i*10;
         arr1[i].size = ceil(4*(rand()/(float)RAND_MAX) + 1);
     }
-    glutMainLoop();
-
-    return 0;
 }
 
 static void on_keyboard(unsigned char key, int x, int y){
@@ -82,15 +96,24 @@ static void on_keyboard(unsigned char key, int x, int y){
     case 27:
         exit(0);
         break;
+    //pokrece igru
     case 'g':
         if (!animation) {
             glutTimerFunc(20, on_timer, 0);
             animation = 1;
         }
         break;
-    case 'h':
+    //pauzira igru
+    case 'p':
         animation = 0;
         break;
+    //restartuje igru
+    case 'r':
+        init();
+        colision = 1;
+        glutPostRedisplay();
+        break;
+    //da li je pritisnuto neko dugme
     case 'w':
         movement[0] = 1;
         break;
@@ -106,6 +129,7 @@ static void on_keyboard(unsigned char key, int x, int y){
     }
 }
 
+//da li je pusteno neko dugme
 static void on_keyboardUp(unsigned char key, int x, int y){
     
     switch (key) {
@@ -129,14 +153,15 @@ static void on_timer(int value){
     if (value != 0)
         return;
 
-    time1++;
+    time1++;                                 //uvecavamo vreme
 
-    int z10 = (int)-z_curr%100;
-    int z100 = (int)-z_curr/100;
-    int ind = z10/10;
+    int z10 = (int)-z_curr%100;              //poslednje dve cifre z koordinate
+    int z100 = (int)-z_curr/100;             //z koordinata podeljena sa 100
+    int ind = z10/10;                        //cifra desetica z koordinate sluzi za indeksiranje niza platformi
     
-    y_curr = (v*time1 - time1*time1*5)/500;
+    y_curr = (v*time1 - time1*time1*5)/500;  //y koordinatu racunamo po formuli hica navise
     
+    //ako je pritisnuto neko dugme pomeri lopticu
     if(movement[0])
         z_curr -= 0.2;
     if(movement[1])
@@ -146,9 +171,12 @@ static void on_timer(int value){
     if(movement[3])
         x_curr += 0.2;
     
+    //ako je loptica u nivou platformi
     if(y_curr <= size && colision){
         
-        if(z100 % 2 == 0){
+        //da li loptica dodiruje platformu
+        //prvi niz
+        if(z100 % 2 == 0){                                      
             if(!(z10 >= (10*ind) && 
                 z10 <= (10*ind + arr1[ind].size - 1) &&
                 x_curr <= arr1[ind].x + arr1[ind].size/2 && 
@@ -157,7 +185,8 @@ static void on_timer(int value){
                 colision = 0;
             }
         }
-        else{
+        //drugi niz
+        else{                                                   
             if(!(z10 >= (10*ind) && 
                 z10 <= (10*ind + arr2[ind].size - 1) &&
                 x_curr <= arr2[ind].x + arr2[ind].size/2 && 
@@ -167,9 +196,11 @@ static void on_timer(int value){
             }
         }
         
+        //kolizija za pocetnu platformu
         if(z_curr > 7)
             colision = 1;
         
+        //azuriraj vreme i ubrzanje ako je loptica dodirnula platformu
         if(colision){
             
             time1 = 0;
@@ -177,12 +208,15 @@ static void on_timer(int value){
         }
     }
     
+    //zaustavi igru ako je loptica u lavi
     if(y_curr < -3)
         animation = 0;
     
+    //ako se loptica nalazi na petoj platformi u nekom nizu azuriraj drugi niz
+    //ovo sluzi da se pomocu dva niza dobije beskonacno platformi (endless runner)
     if(z10 == 50){
-        
-        if(z100 % 2 == 0){
+        //azuriramo 2. niz
+        if(z100 % 2 == 0){              
          
             for(int i = 0; i<NUM; i++){
         
@@ -191,6 +225,7 @@ static void on_timer(int value){
                 arr2[i].size = ceil(4*(rand()/(float)RAND_MAX) + 1);
             }
         }
+        //azuriramo 1. niz
         else{
             
             for(int i = 0; i<NUM; i++){
@@ -217,6 +252,7 @@ static void on_reshape(int width, int height){
     gluPerspective(90, (float) width / height, 1, 100);
 }
 
+//oboji objekte
 static void set_material(int id){
     
     GLfloat ambient_coeffs[] =  {0.1, 0.1, 0.1, 1};
@@ -246,6 +282,7 @@ static void on_display(void){
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
+    //kamera je postavljena direktno iznad loptice na uvek istoj udaljenosti od nje
     gluLookAt(0 + x_curr, 10*sin(1.57) + y_curr, 10*cos(1.57) + z_curr,
               x_curr, y_curr, z_curr, 
               0, 1, 0);
@@ -253,19 +290,20 @@ static void on_display(void){
     GLfloat light_position[] = {0, 1, 0, 0};
     glLightfv(GL_LIGHT0, GL_POSITION, light_position);
     
+    //pocetna platforma
     glPushMatrix();
         glTranslatef(0, -3, 10);
         set_material(2);
         glutSolidCube(6);
     glPopMatrix();
-    
+    //loptica
     glPushMatrix();
         glTranslatef(x_curr, y_curr, z_curr);
         glRotatef(time1, -1, 0, 0);
         set_material(1);
         glutSolidSphere(size, 20, 20);
     glPopMatrix();
-    
+    //ostale platforme
     for(int i = 0; i<NUM; i++){
         
         glPushMatrix();
