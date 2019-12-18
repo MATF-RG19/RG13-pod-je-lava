@@ -84,6 +84,8 @@ static void init(){
     v = 500;
     time1 = 50;
     
+    pos = 0;
+    
     srand(time(NULL));
     
     for(int i = 0; i<NUM; i++){
@@ -167,7 +169,7 @@ static void on_timer(int value){
     
     //y koordinatu racunamo po formuli hica navise
     y_curr = (v*time1 - time1*time1*5)/500;
-    y_curr = 50;
+    //y_curr = 50;
     
     for(int i = 0; i<NUM; i++){
         
@@ -192,7 +194,7 @@ static void on_timer(int value){
     
     int z10 = (int)-z_curr%(NUM*10);          //z koordinata od pocetka niza
     int z100 = (int)-z_curr/(NUM*10);         //broj niza platformi
-    int ind = z10/NUM;                        //indeks platforme u nizu
+    int ind = z10/10;                         //indeks platforme u nizu
     
     //ako je loptica u nivou platformi
     if(y_curr <= size+0.4 && colision){
@@ -310,12 +312,55 @@ static void set_material(int id){
         case 2:
             diffuse_coeffs[1] = 1.0;
             break;
+        case 3:
+            diffuse_coeffs[0] = 1.0;
+            diffuse_coeffs[1] = 1.0;
+            break;
     }
     
     glMaterialfv(GL_FRONT, GL_AMBIENT, ambient_coeffs);
     glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse_coeffs);
     glMaterialfv(GL_FRONT, GL_SPECULAR, specular_coeffs);
     glMaterialf(GL_FRONT, GL_SHININESS, shininess);
+}
+
+float function(float u, float v){
+    
+    return /*sin(0.05*(time2 + (u-v)))*/- 0.5;
+}
+
+void set_vertex_and_normal(float u, float v){
+    
+    float diff_u, diff_v;
+
+    diff_u = (function(u + 1, v)
+             - function(u - 1, v)) / 1.01;
+    diff_v = (function(u, v + 1)
+             - function(u, v - 1)) / 1.01;
+
+    glNormal3f(-diff_u, 1, -diff_v);
+    glVertex3f(u, function(u, v), v);
+}
+
+void plot_function(int u1, int u2, int v1, int v2){
+    
+    int u, v;
+
+    glPushMatrix();
+    
+    for (u = u1; u < u2; u++) {
+        glBegin(GL_QUADS);
+        for (v = v1; v <= v2; v++) {
+            
+            set_vertex_and_normal(u, v);
+            set_vertex_and_normal(u+1, v);
+            set_vertex_and_normal(u+1, v+1);
+            set_vertex_and_normal(u, v+1);
+        }
+        glEnd();
+    }
+
+    glPopMatrix();
 }
 
 static void on_display(void){
@@ -326,12 +371,15 @@ static void on_display(void){
     glLoadIdentity();
     
     //kamera je postavljena direktno iznad loptice na uvek istoj udaljenosti od nje
-    gluLookAt(x_curr, 10*sin(1.57) + y_curr, 10*cos(1.57) + z_curr,
+    gluLookAt(x_curr, 10*sin(1) + y_curr, 10*cos(1) + z_curr,
               x_curr, y_curr, z_curr, 
               0, 1, 0);
     
-    GLfloat light_position[] = {0, 1, 0, 0};
+    GLfloat light_position[] = {0, 50, 0, 0};
     glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+    
+    set_material(3);
+    plot_function(-50, 50, -NUM*10*(pos+1), -NUM*10*(pos-1));
     
     //pocetna platforma
     glPushMatrix();
