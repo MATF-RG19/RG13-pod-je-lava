@@ -12,6 +12,7 @@ struct platform {
     float z;
     float size;
     float speed;
+    int turn;
 };
 
 static struct platform arr1[NUM];               //prvi niz platformi
@@ -90,6 +91,7 @@ static void init(){
         arr1[i].x = 40*(rand()/(float)RAND_MAX) - 20;
         arr1[i].z = -i*10;
         arr1[i].size = ceil(4*(rand()/(float)RAND_MAX) + 1);
+        arr1[i].turn = ceil(60*(rand()/(float)RAND_MAX)) + 70;
         if(i%2 == 0)
             arr1[i].speed = 0.05;
         else
@@ -164,21 +166,17 @@ static void on_timer(int value){
     time2++;
     
     //y koordinatu racunamo po formuli hica navise
-    y_curr = (v*time1 - time1*time1*5)/500;  
+    y_curr = (v*time1 - time1*time1*5)/500;
     
-    if(time2%100 != 0){
-        for(int i = 0; i<NUM; i++){
-            
-            arr1[i].x += arr1[i].speed;
-            arr2[i].x += arr2[i].speed;
-        }
-    }
-    else{
-        for(int i = 0; i<NUM; i++){
-            
+    for(int i = 0; i<NUM; i++){
+        
+        if(time2 % arr1[i].turn == 0)
             arr1[i].speed = -arr1[i].speed;
+        if(arr2[i].turn != 0 && time2 % arr2[i].turn == 0)
             arr2[i].speed = -arr2[i].speed;
-        }
+        
+        arr1[i].x += arr1[i].speed;
+        arr2[i].x += arr2[i].speed;
     }
     
     //ako je pritisnuto neko dugme pomeri lopticu
@@ -196,7 +194,7 @@ static void on_timer(int value){
     int ind = z10/10;                        //cifra desetica z koordinate sluzi za indeksiranje niza platformi
     
     //ako je loptica u nivou platformi
-    if(y_curr <= size && colision){
+    if(y_curr <= size+0.4 && colision){
         
         //da li loptica dodiruje platformu
         //prvi niz
@@ -255,6 +253,7 @@ static void on_timer(int value){
                 arr2[i].x = 40*(rand()/(float)RAND_MAX) - 20;
                 arr2[i].z = -i*10 - 100 * (z100 + 1);
                 arr2[i].size = ceil(4*(rand()/(float)RAND_MAX) + 1);
+                arr2[i].turn = ceil(60*(rand()/(float)RAND_MAX)) + 70;
                 if(i%2 == 0)
                     arr2[i].speed = ((float)z100+2)/20;
                 else
@@ -269,6 +268,7 @@ static void on_timer(int value){
                 arr1[i].x = 40*(rand()/(float)RAND_MAX) - 20;
                 arr1[i].z = -i*10 - 100 * (z100 + 1);
                 arr1[i].size = ceil(4*(rand()/(float)RAND_MAX) + 1);
+                arr1[i].turn = ceil(60*(rand()/(float)RAND_MAX)) + 70;
                 if(i%2 == 0)
                     arr1[i].speed = ((float)z100+2)/20;
                 else
@@ -325,7 +325,7 @@ static void on_display(void){
     glLoadIdentity();
     
     //kamera je postavljena direktno iznad loptice na uvek istoj udaljenosti od nje
-    gluLookAt(0 + x_curr, 10*sin(1.57) + y_curr, 10*cos(1.57) + z_curr,
+    gluLookAt(x_curr, 10*sin(1.57) + y_curr, 10*cos(1.57) + z_curr,
               x_curr, y_curr, z_curr, 
               0, 1, 0);
     
