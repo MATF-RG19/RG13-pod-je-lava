@@ -3,5 +3,5 @@ CC      = gcc
 CFLAGS  = -g 
 LDLIBS  = -lglut -lGLU -lGL -lm
 
-$(PROGRAM): main.o
-	$(CC) -o $(PROGRAM) main.o $(LDLIBS)
+$(PROGRAM): main.o image.o
+	$(CC) -o $(PROGRAM) image.o main.o $(LDLIBS)

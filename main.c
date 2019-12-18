@@ -3,8 +3,9 @@
 #include <math.h>
 #include <time.h>
 #include <GL/glut.h>
+#include "image.h"
 
-#define NUM 20
+#define NUM 10
 
 struct platform {
     
@@ -34,6 +35,7 @@ static void on_timer(int value);
 static void on_display(void);
 static void init();
 static void lights();
+static void texture();
 
 int main(int argc, char **argv){
 
@@ -52,6 +54,7 @@ int main(int argc, char **argv){
     glClearColor(0, 0, 0, 0);
     lights();
     init();
+    texture();
     
     glutMainLoop();
     
@@ -65,9 +68,9 @@ static void lights(){
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     
-    GLfloat light_ambient[] =  {0.5, 0.5, 0.5, 1};
-    GLfloat light_diffuse[] =  {0.5, 0.5, 0.5, 1};
-    GLfloat light_specular[] = {0.5, 0.5, 0.5, 1};
+    GLfloat light_ambient[] =  {1, 1, 1, 1};
+    GLfloat light_diffuse[] =  {0.9, 0.9, 0.9, 1};
+    GLfloat light_specular[] = {0.1, 0.1, 0.1, 1};
 
     glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
     glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
@@ -99,6 +102,30 @@ static void init(){
         else
             arr1[i].speed = -0.05;
     }
+}
+
+static void texture(){
+    
+    Image * image;
+    glEnable(GL_TEXTURE_2D);
+
+    glTexEnvf(GL_TEXTURE_ENV,
+              GL_TEXTURE_ENV_MODE,
+              GL_REPLACE);
+
+    image = image_init(0, 0);
+
+    image_read(image, "lava.bmp");
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
+                 image->width, image->height, 0,
+                 GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
+    
+    image_done(image);
 }
 
 static void on_keyboard(unsigned char key, int x, int y){
@@ -300,9 +327,9 @@ static void on_reshape(int width, int height){
 //oboji objekte
 static void set_material(int id){
     
-    GLfloat ambient_coeffs[] =  {0.1, 0.1, 0.1, 1};
+    GLfloat ambient_coeffs[] =  {0, 0, 0, 1};
     GLfloat diffuse_coeffs[] =  {0.1, 0.1, 0.1, 1};
-    GLfloat specular_coeffs[] = {1, 1, 1, 1};
+    GLfloat specular_coeffs[] = {0.1, 0.1, 0.1, 1};
     GLfloat shininess = 50;
     
     switch (id) {
@@ -314,7 +341,7 @@ static void set_material(int id){
             break;
         case 3:
             diffuse_coeffs[0] = 1.0;
-            diffuse_coeffs[1] = 1.0;
+            diffuse_coeffs[1] = 0.6;
             break;
     }
     
@@ -324,38 +351,29 @@ static void set_material(int id){
     glMaterialf(GL_FRONT, GL_SHININESS, shininess);
 }
 
-float function(float u, float v){
-    
-    return /*sin(0.05*(time2 + (u-v)))*/- 0.5;
-}
-
-void set_vertex_and_normal(float u, float v){
-    
-    float diff_u, diff_v;
-
-    diff_u = (function(u + 1, v)
-             - function(u - 1, v)) / 1.01;
-    diff_v = (function(u, v + 1)
-             - function(u, v - 1)) / 1.01;
-
-    glNormal3f(-diff_u, 1, -diff_v);
-    glVertex3f(u, function(u, v), v);
-}
-
-void plot_function(int u1, int u2, int v1, int v2){
+void lava(int u1, int u2, int v1, int v2){
     
     int u, v;
 
     glPushMatrix();
     
-    for (u = u1; u < u2; u++) {
+    for (u = u1; u < u2; u+=5) {
         glBegin(GL_QUADS);
-        for (v = v1; v <= v2; v++) {
+        for (v = v1; v <= v2; v+=5) {
             
-            set_vertex_and_normal(u, v);
-            set_vertex_and_normal(u+1, v);
-            set_vertex_and_normal(u+1, v+1);
-            set_vertex_and_normal(u, v+1);
+            glNormal3f(0, 1, 0);
+            
+            glTexCoord2f(0, 0);
+            glVertex3f(u, -0.5, v);
+            
+            glTexCoord2f(1, 0);
+            glVertex3f(u+5, -0.5, v);
+            
+            glTexCoord2f(1, 1);
+            glVertex3f(u+5, -0.5, v+5);
+            
+            glTexCoord2f(0, 1);
+            glVertex3f(u, -0.5, v+5);
         }
         glEnd();
     }
@@ -366,20 +384,18 @@ void plot_function(int u1, int u2, int v1, int v2){
 static void on_display(void){
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glDisable(GL_TEXTURE_2D);
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
     //kamera je postavljena direktno iznad loptice na uvek istoj udaljenosti od nje
-    gluLookAt(x_curr, 10*sin(1) + y_curr, 10*cos(1) + z_curr,
+    gluLookAt(x_curr, 10*sin(1.57) + y_curr, 10*cos(1.57) + z_curr,
               x_curr, y_curr, z_curr, 
               0, 1, 0);
     
     GLfloat light_position[] = {0, 50, 0, 0};
     glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-    
-    set_material(3);
-    plot_function(-50, 50, -NUM*10*(pos+1), -NUM*10*(pos-1));
     
     //pocetna platforma
     glPushMatrix();
@@ -391,7 +407,6 @@ static void on_display(void){
     //loptica
     glPushMatrix();
         glTranslatef(x_curr, y_curr, z_curr);
-        glRotatef(time1, -1, 0, 0);
         set_material(1);
         glutSolidSphere(size, 50, 50);
     glPopMatrix();
@@ -411,6 +426,9 @@ static void on_display(void){
             glutSolidCube(arr2[i].size);
         glPopMatrix();
     }
+    
+    glEnable(GL_TEXTURE_2D);
+    lava(-80, 80, -NUM*10*(pos+1), -NUM*10*(pos-1));
     
     glutSwapBuffers();
 }
