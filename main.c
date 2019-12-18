@@ -436,7 +436,7 @@ static void on_display(void){
     glLoadIdentity();
     
     //kamera je postavljena direktno iznad loptice na uvek istoj udaljenosti od nje
-    gluLookAt(x_curr, 10*sin(1.2) + y_curr, 10*cos(1.2) + z_curr,
+    gluLookAt(x_curr, 10*sin(1.57) + y_curr, 10*cos(1.57) + z_curr,
               x_curr, y_curr, z_curr, 
               0, 1, 0);
     
