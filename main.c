@@ -4,7 +4,7 @@
 #include <time.h>
 #include <GL/glut.h>
 
-#define NUM 10
+#define NUM 20
 
 struct platform {
     
@@ -167,6 +167,7 @@ static void on_timer(int value){
     
     //y koordinatu racunamo po formuli hica navise
     y_curr = (v*time1 - time1*time1*5)/500;
+    y_curr = 50;
     
     for(int i = 0; i<NUM; i++){
         
@@ -189,9 +190,9 @@ static void on_timer(int value){
     if(movement[3])
         x_curr += 0.2;
     
-    int z10 = (int)-z_curr%100;              //poslednje dve cifre z koordinate
-    int z100 = (int)-z_curr/100;             //z koordinata podeljena sa 100
-    int ind = z10/10;                        //cifra desetica z koordinate sluzi za indeksiranje niza platformi
+    int z10 = (int)-z_curr%(NUM*10);          //z koordinata od pocetka niza
+    int z100 = (int)-z_curr/(NUM*10);         //broj niza platformi
+    int ind = z10/NUM;                        //indeks platforme u nizu
     
     //ako je loptica u nivou platformi
     if(y_curr <= size+0.4 && colision){
@@ -251,7 +252,7 @@ static void on_timer(int value){
             for(int i = 0; i<NUM; i++){
         
                 arr2[i].x = 40*(rand()/(float)RAND_MAX) - 20;
-                arr2[i].z = -i*10 - 100 * (z100 + 1);
+                arr2[i].z = -i*10 - (NUM*10) * (z100 + 1);
                 arr2[i].size = ceil(4*(rand()/(float)RAND_MAX) + 1);
                 arr2[i].turn = ceil(60*(rand()/(float)RAND_MAX)) + 70;
                 if(i%2 == 0)
@@ -266,7 +267,7 @@ static void on_timer(int value){
             for(int i = 0; i<NUM; i++){
         
                 arr1[i].x = 40*(rand()/(float)RAND_MAX) - 20;
-                arr1[i].z = -i*10 - 100 * (z100 + 1);
+                arr1[i].z = -i*10 - (NUM*10) * (z100 + 1);
                 arr1[i].size = ceil(4*(rand()/(float)RAND_MAX) + 1);
                 arr1[i].turn = ceil(60*(rand()/(float)RAND_MAX)) + 70;
                 if(i%2 == 0)
