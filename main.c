@@ -27,6 +27,7 @@ static int animation;                           //da li je animacija u toku
 static int colision = 1;                        //da li se desila kolizija
 static int pos = 0;                             //koliko nizova je generisano
 static float size = 0.5;                        //poluprecnik loptice
+static GLuint names[2];                         //teksture
 
 static void on_keyboard(unsigned char key, int x, int y);
 static void on_keyboardUp(unsigned char key, int x, int y);
@@ -116,6 +117,9 @@ static void texture(){
     image = image_init(0, 0);
 
     image_read(image, "lava.bmp");
+    
+    glGenTextures(2, names);
+    glBindTexture(GL_TEXTURE_2D, names[0]);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -124,6 +128,21 @@ static void texture(){
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
                  image->width, image->height, 0,
                  GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
+    
+    image_read(image, "rock.bmp");
+
+    glBindTexture(GL_TEXTURE_2D, names[1]);
+    glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
+                 image->width, image->height, 0,
+                 GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
     
     image_done(image);
 }
@@ -212,11 +231,11 @@ static void on_timer(int value){
     //ako je pritisnuto neko dugme pomeri lopticu
     if(movement[0])
         z_curr -= 0.2;
-    if(movement[1])
+    if(movement[1] && x_curr > -40+size)
         x_curr -= 0.2;
     if(movement[2])
         z_curr += 0.2;
-    if(movement[3])
+    if(movement[3] && x_curr < 40-size)
         x_curr += 0.2;
     
     int z10 = (int)-z_curr%(NUM*10);          //z koordinata od pocetka niza
@@ -274,7 +293,7 @@ static void on_timer(int value){
     
     //ako se loptica nalazi na petoj platformi u nekom nizu azuriraj drugi niz
     //ovo sluzi da se pomocu dva niza dobije beskonacno platformi (endless runner)
-    if(z10 > 10*NUM/2 - 5 && z100 == pos){
+    if(z10 > 45 && z100 == pos){
         //azuriramo 2. niz
         if(z100 % 2 == 0){              
          
@@ -387,6 +406,27 @@ void lava(int u1, int u2, int v1, int v2, float t){
     glPopMatrix();
 }
 
+void wall(int x, int u1, int u2, int v1, int v2){
+    
+    int u, v;
+    
+    glPushMatrix();
+    
+    for (u = u1; u < u2; u+=10) {
+        glBegin(GL_QUADS);
+        for (v = v1; v <= v2; v+=10) {
+            
+            glTexCoord2f(0, 0);     glVertex3f(x, u, v);
+            glTexCoord2f(1, 0);     glVertex3f(x, u+10, v);
+            glTexCoord2f(1, 1);     glVertex3f(x, u+10, v+10);
+            glTexCoord2f(0, 1);     glVertex3f(x, u, v+10);
+        }
+        glEnd();
+    }
+    
+    glPopMatrix();
+}
+
 static void on_display(void){
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -396,7 +436,7 @@ static void on_display(void){
     glLoadIdentity();
     
     //kamera je postavljena direktno iznad loptice na uvek istoj udaljenosti od nje
-    gluLookAt(x_curr, 10*sin(1.57) + y_curr, 10*cos(1.57) + z_curr,
+    gluLookAt(x_curr, 10*sin(1.2) + y_curr, 10*cos(1.2) + z_curr,
               x_curr, y_curr, z_curr, 
               0, 1, 0);
     
@@ -434,7 +474,13 @@ static void on_display(void){
     }
     
     glEnable(GL_TEXTURE_2D);
+    
+    glBindTexture(GL_TEXTURE_2D, names[0]);
     lava(-40, 40, -NUM*10*(pos+1), -NUM*10*(pos-1), time2);
+    
+    glBindTexture(GL_TEXTURE_2D, names[1]);
+    wall(-40, -10, 50, -NUM*10*(pos+1), -NUM*10*(pos-1));
+    wall(40, -10, 50, -NUM*10*(pos+1), -NUM*10*(pos-1));
     
     glutSwapBuffers();
 }
