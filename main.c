@@ -5,7 +5,7 @@
 #include <GL/glut.h>
 #include "image.h"
 
-#define NUM 10
+#define NUM 20
 
 struct platform {
     
@@ -196,7 +196,7 @@ static void on_timer(int value){
     
     //y koordinatu racunamo po formuli hica navise
     y_curr = (v*time1 - time1*time1*5)/500;
-    //y_curr = 50;
+    //y_curr = 2;
     
     for(int i = 0; i<NUM; i++){
         
@@ -274,7 +274,7 @@ static void on_timer(int value){
     
     //ako se loptica nalazi na petoj platformi u nekom nizu azuriraj drugi niz
     //ovo sluzi da se pomocu dva niza dobije beskonacno platformi (endless runner)
-    if(z10 > 45 && z100 == pos){
+    if(z10 > 10*NUM/2 - 5 && z100 == pos){
         //azuriramo 2. niz
         if(z100 % 2 == 0){              
          
@@ -351,29 +351,35 @@ static void set_material(int id){
     glMaterialf(GL_FRONT, GL_SHININESS, shininess);
 }
 
-void lava(int u1, int u2, int v1, int v2){
+float f(float t){
+    
+    return sin(t/50)/2 - 1.5;
+}
+
+void lava(int u1, int u2, int v1, int v2, float t){
     
     int u, v;
-
+    
     glPushMatrix();
     
     for (u = u1; u < u2; u+=5) {
         glBegin(GL_QUADS);
         for (v = v1; v <= v2; v+=5) {
             
-            glNormal3f(0, 1, 0);
-            
-            glTexCoord2f(0, 0);
-            glVertex3f(u, -0.5, v);
-            
-            glTexCoord2f(1, 0);
-            glVertex3f(u+5, -0.5, v);
-            
-            glTexCoord2f(1, 1);
-            glVertex3f(u+5, -0.5, v+5);
-            
-            glTexCoord2f(0, 1);
-            glVertex3f(u, -0.5, v+5);
+            if((u+v) % 10 == 0){
+                
+                glTexCoord2f(0, 0);     glVertex3f(u, f(t), v);
+                glTexCoord2f(1, 0);     glVertex3f(u+5, f(t)/2, v);
+                glTexCoord2f(1, 1);     glVertex3f(u+5, f(t), v+5);
+                glTexCoord2f(0, 1);     glVertex3f(u, f(t)/2, v+5);
+            }
+            else{
+                
+                glTexCoord2f(0, 0);     glVertex3f(u, f(t)/2, v);
+                glTexCoord2f(1, 0);     glVertex3f(u+5, f(t), v);
+                glTexCoord2f(1, 1);     glVertex3f(u+5, f(t)/2, v+5);
+                glTexCoord2f(0, 1);     glVertex3f(u, f(t), v+5);
+            }
         }
         glEnd();
     }
@@ -428,7 +434,7 @@ static void on_display(void){
     }
     
     glEnable(GL_TEXTURE_2D);
-    lava(-80, 80, -NUM*10*(pos+1), -NUM*10*(pos-1));
+    lava(-40, 40, -NUM*10*(pos+1), -NUM*10*(pos-1), time2);
     
     glutSwapBuffers();
 }
