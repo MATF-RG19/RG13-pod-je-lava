@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 #include <time.h>
 #include <GL/glut.h>
 #include "models.h"
@@ -121,4 +122,17 @@ void wall(int x, int u1, int u2, int v1, int v2){
     }
     
     glPopMatrix();
+}
+
+void show_score(float x_curr, float y_curr, float z_curr, int score){
+        
+    char s[12];
+    sprintf(s,"%d", score);
+
+    glColor3f(0.96,0.96,0.96);
+    glRasterPos3f(x_curr - 5, y_curr, z_curr - 5);
+    
+    for(int i=0; i<strlen(s); i++) {
+        glutBitmapCharacter( GLUT_BITMAP_TIMES_ROMAN_24, s[i]);
+    }
 }

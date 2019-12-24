@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 #include <time.h>
 #include <GL/glut.h>
 #include "image.h"
@@ -20,6 +21,7 @@ static int animation;                           //da li je animacija u toku
 static int colision = 1;                        //da li se desila kolizija
 static int pos = 0;                             //koliko nizova je generisano
 static float size = 0.5;                        //poluprecnik loptice
+static int score = 0;                           //broj poena
 static GLuint names[2];                         //teksture
 
 static void on_keyboard(unsigned char key, int x, int y);
@@ -82,6 +84,7 @@ static void init(){
     time1 = 50;
     
     pos = 0;
+    score = 0;
     
     generate_platforms(arr1, NUM, -1);
 }
@@ -212,6 +215,9 @@ static void on_timer(int value){
     int z100 = (int)-z_curr/(NUM*10);         //broj trenutnog niza platformi
     int ind = z10/10;                         //indeks platforme u trenutnom nizu
     
+    if(z100*NUM + ind + 1 > score)
+        score = z100*NUM + ind + 1;
+    
     //ako je loptica u nivou platformi
     if(y_curr <= size+0.4 && colision)
         detect_collision(x_curr, z_curr, &colision, z100, z10, ind, &v, &time1, arr1, arr2);
@@ -266,6 +272,7 @@ static void on_display(void){
     
     draw_player(x_curr, y_curr, z_curr, size);
     draw_platforms(arr1, arr2, NUM);
+    show_score(x_curr, y_curr, z_curr, score);
     
     glEnable(GL_TEXTURE_2D);
     
