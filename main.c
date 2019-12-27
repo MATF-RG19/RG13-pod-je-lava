@@ -216,6 +216,7 @@ static void on_display(void){
     GLfloat light_position[] = {0, 50, 0, 0};
     glLightfv(GL_LIGHT0, GL_POSITION, light_position);
     
+    //5 argument je namesten tako da pingvin 4 puta zamahne krilima u jednom skoku
     draw_player(x_curr, y_curr, z_curr, size, time1*4*10*3.14/v, rotx, rotz);
     draw_platforms(arr1, arr2, NUM);
     
