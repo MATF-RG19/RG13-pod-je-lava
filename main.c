@@ -22,6 +22,7 @@ static int colision = 1;                        //da li se desila kolizija
 static int pos = 0;                             //koliko nizova je generisano
 static float size = 0.5;                        //velicina pingvina
 static int score = 0;                           //broj poena
+static int best = 0;                           //najveci broj poena
 static GLuint names[2];                         //teksture
 static float rotx = 0;                          //ugao ratacije pingvina oko x ose
 static float rotz = 0;                          //ugao ratacije pingvina oko z ose
@@ -164,8 +165,12 @@ static void on_timer(int value){
         detect_collision(x_curr, z_curr, &colision, z100, z10, ind, &v, &time1, arr1, arr2);
     
     //zaustavi igru ako je loptica u lavi
-    if(y_curr < -3)
+    if(y_curr < -3){
         animation = 0;
+        
+        if(score > best)
+            best = score;
+    }
     
     //ako se loptica nalazi na petoj platformi u nekom nizu azuriraj drugi niz
     //ovo sluzi da se pomocu dva niza dobije beskonacno platformi (endless runner)
@@ -212,9 +217,33 @@ static void on_display(void){
     GLfloat light_position[] = {0, 50, 0, 0};
     glLightfv(GL_LIGHT0, GL_POSITION, light_position);
     
-    draw_player(x_curr, y_curr, z_curr, size, time1*40*3.14/v, rotx, rotz);
+    draw_player(x_curr, y_curr, z_curr, size, time1*4*10*3.14/v, rotx, rotz);
     draw_platforms(arr1, arr2, NUM);
-    show_score(x_curr, y_curr, z_curr, score);
+    
+    glColor3f(0.1, 0.1, 0.4);
+    if(animation){
+        
+        int h = glutGet(GLUT_WINDOW_HEIGHT);
+            
+        char s[12];
+        sprintf(s,"%d", score);
+        
+        show_text(100, h-100, s);
+    }
+    else{
+        
+        int h = glutGet(GLUT_WINDOW_HEIGHT);
+        int w = glutGet(GLUT_WINDOW_WIDTH);
+        char s[6][100] = {"press g to start","press p to pause","press r to restart","controls: wasd", "", ""};
+        
+        if(score != 0){
+            sprintf(s[4], "score: %d", score);
+            sprintf(s[5], "best score: %d", best);
+        }
+        
+        for(int i=0; i<6; i++)
+            show_text(w/4, 2*h/3-50*i, s[i]);
+    }
     
     glEnable(GL_TEXTURE_2D);
     

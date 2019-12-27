@@ -44,7 +44,7 @@ void draw_player(float x_curr, float y_curr, float z_curr, float size, float t, 
     glPushMatrix();
         glScalef(1, 2.5, 1);
         glColor3f(0.1, 0.1, 0.1);
-        glutSolidSphere(size, 50, 50);
+        glutSolidSphere(size, 20, 20);
     glPopMatrix();
     
     glDisable(GL_CLIP_PLANE0);
@@ -54,20 +54,20 @@ void draw_player(float x_curr, float y_curr, float z_curr, float size, float t, 
         glTranslatef(0, size + 0.2, -0.2);
         glScalef(0.7, 0.7, 0.7);
         glColor3f(0.7, 0.7, 0.7);
-        glutSolidSphere(size, 50, 50);
+        glutSolidSphere(size, 20, 20);
     glPopMatrix();
     
     //oci
     glPushMatrix();
         glTranslatef(0.13, size + 0.4, -0.45);
         glColor3f(0, 0, 0);
-        glutSolidSphere(0.07, 50, 50);
+        glutSolidSphere(0.07, 20, 20);
     glPopMatrix();
     
     glPushMatrix();
         glTranslatef(-0.13, size + 0.4, -0.45);
         glColor3f(0, 0, 0);
-        glutSolidSphere(0.07, 50, 50);
+        glutSolidSphere(0.07, 20, 20);
     glPopMatrix();
     
     //kljun
@@ -170,20 +170,10 @@ void lava(int u1, int u2, int v1, int v2, float t){
         glBegin(GL_QUADS);
         for (v = v1; v <= v2; v+=5) {
             
-            if((u+v) % 10 == 0){
-                
-                glTexCoord2f(0, 0);     glVertex3f(u, -0.5, v);
-                glTexCoord2f(1, 0);     glVertex3f(u+5, -0.5, v);
-                glTexCoord2f(1, 1);     glVertex3f(u+5, -0.5, v+5);
-                glTexCoord2f(0, 1);     glVertex3f(u, -0.5, v+5);
-            }
-            else{
-                
-                glTexCoord2f(0, 0);     glVertex3f(u, -0.5, v);
-                glTexCoord2f(1, 0);     glVertex3f(u+5, -0.5, v);
-                glTexCoord2f(1, 1);     glVertex3f(u+5, -0.5, v+5);
-                glTexCoord2f(0, 1);     glVertex3f(u, -0.5, v+5);
-            }
+            glTexCoord2f(0, 0);     glVertex3f(u, -0.5, v);
+            glTexCoord2f(1, 0);     glVertex3f(u+5, -0.5, v);
+            glTexCoord2f(1, 1);     glVertex3f(u+5, -0.5, v+5);
+            glTexCoord2f(0, 1);     glVertex3f(u, -0.5, v+5);
         }
         glEnd();
     }
@@ -212,15 +202,32 @@ void wall(int x, int u1, int u2, int v1, int v2){
     glPopMatrix();
 }
 
-void show_score(float x_curr, float y_curr, float z_curr, int score){
-        
-    char s[12];
-    sprintf(s,"%d", score);
-
-    glColor3f(0.96,0.96,0.96);
-    glRasterPos3f(x_curr - 5, y_curr, z_curr - 5);
+void show_text(int x, int y, char *s){
     
-    for(int i=0; i<strlen(s); i++) {
-        glutBitmapCharacter( GLUT_BITMAP_TIMES_ROMAN_24, s[i]);
-    }
+    glDisable(GL_LIGHTING);
+    glPushMatrix(); 
+    
+        int h = glutGet(GLUT_WINDOW_HEIGHT);
+        int w = glutGet(GLUT_WINDOW_WIDTH);
+    
+        glMatrixMode(GL_PROJECTION); 
+        GLdouble matrix[16];
+        glGetDoublev(GL_PROJECTION_MATRIX, matrix);
+        glLoadIdentity();
+        
+        glOrtho(0, w, 0, h, -5, 5);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+
+        glRasterPos2i(x, y);
+        for(int i=0; i<strlen(s); i++) {
+            glutBitmapCharacter( GLUT_BITMAP_TIMES_ROMAN_24, s[i]);
+        }
+        
+        glMatrixMode(GL_PROJECTION);
+        glLoadMatrixd(matrix); 
+        glMatrixMode(GL_MODELVIEW);
+        
+    glPopMatrix();
+    glEnable(GL_LIGHTING);
 }
