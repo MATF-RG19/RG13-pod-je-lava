@@ -7,6 +7,7 @@
 #include "models.h"
 #include "utility.h"
 
+//crta popunjen valjak
 void draw_cylinder(float size, int id){
  
     GLUquadric *q = gluNewQuadric();
@@ -26,6 +27,7 @@ void draw_cylinder(float size, int id){
     gluDisk(q, 0, size, 20, 20);
 }
 
+//crta pingvina
 void draw_player(float x_curr, float y_curr, float z_curr, float size, float t, float rotx, float rotz){
     
     double plane[] = {0, 1, 0, -(y_curr - size - 0.31)};
@@ -35,6 +37,7 @@ void draw_player(float x_curr, float y_curr, float z_curr, float size, float t, 
     glPushMatrix();
     
     glTranslatef(x_curr, y_curr, z_curr);
+    //rotacije ako se pingvin pomera
     if(rotx != 0)
         glRotatef(-rotx, 1, 0, 0);
     if(rotz != 0)

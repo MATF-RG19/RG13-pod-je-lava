@@ -22,7 +22,7 @@ static int colision = 1;                        //da li se desila kolizija
 static int pos = 0;                             //koliko nizova je generisano
 static float size = 0.5;                        //velicina pingvina
 static int score = 0;                           //broj poena
-static int best = 0;                           //najveci broj poena
+static int best = 0;                            //najveci broj poena
 static GLuint names[2];                         //teksture
 static float rotx = 0;                          //ugao ratacije pingvina oko x ose
 static float rotz = 0;                          //ugao ratacije pingvina oko z ose
@@ -59,7 +59,7 @@ int main(int argc, char **argv){
     return 0;
 }
 
-//inicijalizacija koordinata loptice i niza platformi
+//inicijalizacija koordinata pingvina i niza platformi
 static void init(){
     
     x_curr = 0;
@@ -146,7 +146,6 @@ static void on_timer(int value){
     
     //y koordinatu racunamo po formuli hica navise
     y_curr = 3*size + (v*time1 - time1*time1*5)/500;
-    //y_curr = 100;
     
     move_platforms(arr1, arr2, NUM, time2);
     
@@ -208,7 +207,7 @@ static void on_display(void){
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
-    //kamera je postavljena direktno iznad loptice na uvek istoj udaljenosti od nje
+    //kamera je uvek na istoj udaljenosti od pingvina
     float angle = 1.2;
     gluLookAt(x_curr, 10*sin(angle) + y_curr, 10*cos(angle) + z_curr,
               x_curr, y_curr, z_curr, 
@@ -220,6 +219,7 @@ static void on_display(void){
     draw_player(x_curr, y_curr, z_curr, size, time1*4*10*3.14/v, rotx, rotz);
     draw_platforms(arr1, arr2, NUM);
     
+    //ispisuje rezultati poene
     glColor3f(0.1, 0.1, 0.4);
     if(animation){
         
@@ -247,9 +247,11 @@ static void on_display(void){
     
     glEnable(GL_TEXTURE_2D);
     
+    //crta lavu
     glBindTexture(GL_TEXTURE_2D, names[0]);
     lava(-40, 40, -NUM*10*(pos+1), -NUM*10*(pos-1), time2);
     
+    //crta zidove
     glBindTexture(GL_TEXTURE_2D, names[1]);
     wall(-40, -10, 60, -NUM*10*(pos+1), -NUM*10*(pos-1));
     wall(40, -10, 60, -NUM*10*(pos+1), -NUM*10*(pos-1));

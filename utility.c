@@ -97,7 +97,7 @@ void detect_collision(float x_curr, float z_curr, int *colision,
                       struct platform *arr1, struct platform *arr2){
     
     
-    //da li loptica dodiruje platformu
+    //da li pingvin dodiruje platformu
     //prvi niz
     if(z100 % 2 == 0){                                      
         if(!(z10 >= (10*ind) && 
@@ -123,7 +123,7 @@ void detect_collision(float x_curr, float z_curr, int *colision,
     if(z_curr > 7)
         *colision = 1;
     
-    //azuriraj vreme i ubrzanje ako je loptica dodirnula platformu
+    //azuriraj vreme i ubrzanje ako je pingvin dodirnuo platformu
     if(*colision){
         
         *time1 = 0;
@@ -142,6 +142,7 @@ void detect_collision(float x_curr, float z_curr, int *colision,
 
 void move_player(float *x_curr, float *z_curr, float *rotx, float *rotz, int *movement, float size){
     
+    //pomeraj i rotacija unapred
     if(movement[0]){
         
         *z_curr -= 0.2;
@@ -155,7 +156,7 @@ void move_player(float *x_curr, float *z_curr, float *rotx, float *rotz, int *mo
         if(*rotx <= 0)
             *rotx = 0;
     }
-    
+    //pomeraj i rotacija ulevo
     if(movement[1] && *x_curr > -40+2*size){
         
         *x_curr -= 0.2;
@@ -167,10 +168,10 @@ void move_player(float *x_curr, float *z_curr, float *rotx, float *rotz, int *mo
         if(*rotz <= -10)
             *rotz = -10;
     }
-    
+    //pomeraj unazad
     if(movement[2])
         *z_curr += 0.2;
-    
+    //pomeraj i rotacija udesno
     if(movement[3] && *x_curr < 40-2*size){
         
         *x_curr += 0.2;
@@ -182,7 +183,7 @@ void move_player(float *x_curr, float *z_curr, float *rotx, float *rotz, int *mo
         if(*rotz >= 10)
             *rotz = 10;
     }
-    
+    //rotacije levo desno(vracanje na nulu)
     if(!movement[3] && !movement[1]){
         
         if(*rotz < 1)
