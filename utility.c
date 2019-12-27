@@ -11,7 +11,6 @@ void lights(){
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
-    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
     
     GLfloat light_ambient[] =  {1, 1, 1, 1};
     GLfloat light_diffuse[] =  {0.9, 0.9, 0.9, 1};

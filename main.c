@@ -204,14 +204,15 @@ static void on_display(void){
     glLoadIdentity();
     
     //kamera je postavljena direktno iznad loptice na uvek istoj udaljenosti od nje
-    gluLookAt(x_curr, 10*sin(1) + y_curr, 10*cos(1) + z_curr,
+    float angle = 1.2;
+    gluLookAt(x_curr, 10*sin(angle) + y_curr, 10*cos(angle) + z_curr,
               x_curr, y_curr, z_curr, 
               0, 1, 0);
     
     GLfloat light_position[] = {0, 50, 0, 0};
     glLightfv(GL_LIGHT0, GL_POSITION, light_position);
     
-    draw_player(x_curr, y_curr, z_curr, size, time2, rotx, rotz);
+    draw_player(x_curr, y_curr, z_curr, size, time1*40*3.14/v, rotx, rotz);
     draw_platforms(arr1, arr2, NUM);
     show_score(x_curr, y_curr, z_curr, score);
     
@@ -221,8 +222,8 @@ static void on_display(void){
     lava(-40, 40, -NUM*10*(pos+1), -NUM*10*(pos-1), time2);
     
     glBindTexture(GL_TEXTURE_2D, names[1]);
-    wall(-40, -10, 50, -NUM*10*(pos+1), -NUM*10*(pos-1));
-    wall(40, -10, 50, -NUM*10*(pos+1), -NUM*10*(pos-1));
+    wall(-40, -10, 60, -NUM*10*(pos+1), -NUM*10*(pos-1));
+    wall(40, -10, 60, -NUM*10*(pos+1), -NUM*10*(pos-1));
     
     glutSwapBuffers();
 }

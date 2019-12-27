@@ -17,7 +17,7 @@ void draw_cylinder(float size, int id){
     gluCylinder(q, size, size, 0.1, 20, 20);
     
     if(id == 1)
-        glColor3f(0.07, 0.07, 0.07);
+        glColor3f(0.1, 0.1, 0.1);
     gluDisk(q, 0, size, 20, 20);
     
     if(id == 1)
@@ -35,8 +35,10 @@ void draw_player(float x_curr, float y_curr, float z_curr, float size, float t, 
     glPushMatrix();
     
     glTranslatef(x_curr, y_curr, z_curr);
-    glRotatef(-rotx, 1, 0, 0);
-    glRotatef(-rotz, 0, 0, 1);
+    if(rotx != 0)
+        glRotatef(-rotx, 1, 0, 0);
+    if(rotz != 0)
+        glRotatef(-rotz, 0, 0, 1);
 
     //telo
     glPushMatrix();
@@ -97,7 +99,7 @@ void draw_player(float x_curr, float y_curr, float z_curr, float size, float t, 
     glPushMatrix();
         glTranslatef(0.5, 0.2, 0);
         glRotatef(90, 1, 0, 0);
-        glRotatef(45*sin(t/10), 0, 1, 0);
+        glRotatef(45*cos(t), 0, 1, 0);
         glScalef(1.5, 0.6, 1);
         draw_cylinder(size, 1);
     glPopMatrix();
@@ -105,7 +107,7 @@ void draw_player(float x_curr, float y_curr, float z_curr, float size, float t, 
     glPushMatrix();
         glTranslatef(-0.5, 0.2, 0);
         glRotatef(90, 1, 0, 0);
-        glRotatef(-45*sin(t/10), 0, 1, 0);
+        glRotatef(-45*cos(t), 0, 1, 0);
         glScalef(1.5, 0.6, 1);
         draw_cylinder(size, 1);
     glPopMatrix();
@@ -158,11 +160,6 @@ void draw_platforms(struct platform *arr1, struct platform *arr2, int n){
     }
 }
 
-float f(float t){
-    
-    return sin(t/50)/2 - 1.5;
-}
-
 void lava(int u1, int u2, int v1, int v2, float t){
     
     int u, v;
@@ -175,17 +172,17 @@ void lava(int u1, int u2, int v1, int v2, float t){
             
             if((u+v) % 10 == 0){
                 
-                glTexCoord2f(0, 0);     glVertex3f(u, f(t), v);
-                glTexCoord2f(1, 0);     glVertex3f(u+5, f(t)/2, v);
-                glTexCoord2f(1, 1);     glVertex3f(u+5, f(t), v+5);
-                glTexCoord2f(0, 1);     glVertex3f(u, f(t)/2, v+5);
+                glTexCoord2f(0, 0);     glVertex3f(u, -0.5, v);
+                glTexCoord2f(1, 0);     glVertex3f(u+5, -0.5, v);
+                glTexCoord2f(1, 1);     glVertex3f(u+5, -0.5, v+5);
+                glTexCoord2f(0, 1);     glVertex3f(u, -0.5, v+5);
             }
             else{
                 
-                glTexCoord2f(0, 0);     glVertex3f(u, f(t)/2, v);
-                glTexCoord2f(1, 0);     glVertex3f(u+5, f(t), v);
-                glTexCoord2f(1, 1);     glVertex3f(u+5, f(t)/2, v+5);
-                glTexCoord2f(0, 1);     glVertex3f(u, f(t), v+5);
+                glTexCoord2f(0, 0);     glVertex3f(u, -0.5, v);
+                glTexCoord2f(1, 0);     glVertex3f(u+5, -0.5, v);
+                glTexCoord2f(1, 1);     glVertex3f(u+5, -0.5, v+5);
+                glTexCoord2f(0, 1);     glVertex3f(u, -0.5, v+5);
             }
         }
         glEnd();
